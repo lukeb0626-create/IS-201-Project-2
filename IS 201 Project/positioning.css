@@ -1,0 +1,53 @@
+div {
+    padding: 2px;
+    border: solid black 2px;
+    margin: 2px;
+    position: absolute;
+    background-color: turquoise;
+}
+
+.header_div {
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.left_menu {
+    top: 114px;
+    left: 5px;
+    bottom: 5px;
+    width: 100px;
+}
+
+.right_menu {
+    top: 114px;
+    right: 5px;
+    bottom: 5px;
+    width: 100px;
+    color: blue;
+}
+
+.right_menu a {
+    color: blue;
+    display: block;
+    text-decoration: underline;
+}
+
+.center_content {
+    top: 114px;
+    left: 114px;
+    right: 114px;
+    bottom: 5px;
+    overflow-y: auto;
+}
+
+.footer {
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    height: 100px;
+}
