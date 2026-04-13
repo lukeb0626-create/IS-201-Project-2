@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trophy Score Calculator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #1a1a1a;
+            color: #f0e6d3;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container { max-width: 820px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #8b6914;
+            padding-bottom: 20px;
+        }
+
+        header h1 { font-size: 2.2em; color: #d4a843; letter-spacing: 2px; text-transform: uppercase; }
+        header p { color: #a89070; margin-top: 8px; font-style: italic; }
+
+        .animal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .animal-btn {
+            background-color: #2a2a2a;
+            border: 1px solid #4a3a20;
+            color: #c8a96e;
+            padding: 12px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: 0.82em;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .animal-btn:hover { background-color: #3a2e1a; border-color: #d4a843; color: #d4a843; }
+        .animal-btn.active { background-color: #4a3a15; border-color: #d4a843; color: #d4a843; font-weight: bold; }
+        .animal-btn .icon { font-size: 1.5em; display: block; margin-bottom: 4px; }
+
+        .panel {
+            background-color: #222;
+            border: 1px solid #4a3a20;
+            border-radius: 10px;
+            padding: 28px;
+            display: none;
+        }
+
+        .panel.visible { display: block; }
+
+        .panel-title { font-size: 1.4em; color: #d4a843; margin-bottom: 4px; }
+        .panel-subtitle { color: #a89070; font-style: italic; font-size: 0.88em; margin-bottom: 22px; border-bottom: 1px solid #3a2e1a; padding-bottom: 14px; }
+
+        .section-label { font-size: 0.72em; text-transform: uppercase; letter-spacing: 1.5px; color: #8b6914; margin: 18px 0 8px; }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 8px; }
+        .row.single { grid-template-columns: 1fr; }
+
+        .field { display: flex; flex-direction: column; }
+        .field label { font-size: 0.8em; color: #a89070; margin-bottom: 4px; }
+        .field input {
+            background-color: #1a1a1a;
+            border: 1px solid #4a3a20;
+            color: #f0e6d3;
+            padding: 8px 11px;
+            border-radius: 5px;
+            font-family: 'Georgia', serif;
+            font-size: 0.92em;
+            transition: border-color 0.2s;
+        }
+        .field input:focus { outline: none; border-color: #d4a843; }
+        .field input::placeholder { color: #555; }
+        .hint { font-size: 0.72em; color: #666; margin-top: 2px; }
+
+        .calc-btn {
+            background-color: #8b6914;
+            color: #fff8ee;
+            border: none;
+            padding: 12px;
+            font-family: 'Georgia', serif;
+            font-size: 0.95em;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-top: 22px;
+            width: 100%;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: background-color 0.2s;
+        }
+        .calc-btn:hover { background-color: #d4a843; color: #1a1a1a; }
+
+        .result {
+            display: none;
+            margin-top: 22px;
+            background-color: #1a1a1a;
+            border: 2px solid #8b6914;
+            border-radius: 8px;
+            padding: 22px;
+            text-align: center;
+        }
+        .result.visible { display: block; }
+
+        .score { font-size: 2.8em; color: #d4a843; font-weight: bold; line-height: 1; }
+        .unit { font-size: 0.85em; color: #a89070; margin-top: 4px; }
+        .grade {
+            font-size: 1.1em;
+            margin-top: 14px;
+            padding: 8px 18px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .g-wr  { background-color: #4a3a00; color: #ffd700; }
+        .g-exc { background-color: #1a3a1a; color: #90ee90; }
+        .g-tro { background-color: #1a2a3a; color: #87ceeb; }
+        .g-avg { background-color: #2a2a2a; color: #c8c8c8; }
+
+        .breakdown { margin-top: 16px; text-align: left; font-size: 0.86em; color: #a89070; line-height: 2; }
+        .breakdown span { color: #d4a843; }
+
+        .reset-btn {
+            background: none;
+            border: 1px solid #4a3a20;
+            color: #a89070;
+            padding: 7px 18px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 14px;
+            font-size: 0.82em;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { border-color: #d4a843; color: #d4a843; }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 35px;
+            color: #8b6914;
+            text-decoration: none;
+            font-size: 0.88em;
+            border-bottom: 1px solid #4a3a20;
+            padding-bottom: 2px;
+        }
+        .back-link:hover { color: #d4a843; }
+
+        footer { text-align: center; margin-top: 45px; color: #555; font-size: 0.78em; font-style: italic; line-height: 1.8; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Trophy Score Calculator</h1>
+        <p>Boone &amp; Crockett / Safari Club International Scoring Reference</p>
+    </header>
+
+    <div class="animal-grid">
+        <button class="animal-btn" onclick="sel('argali',this)"><span class="icon">🐏</span>Argali Sheep</button>
+        <button class="animal-btn" onclick="sel('bighorn',this)"><span class="icon">🐏</span>Bighorn Sheep</button>
+        <button class="animal-btn" onclick="sel('dallsheep',this)"><span class="icon">🐏</span>Dall Sheep</button>
+        <button class="animal-btn" onclick="sel('elk',this)"><span class="icon">🦌</span>Rocky Mtn. Elk</button>
+        <button class="animal-btn" onclick="sel('whitetail',this)"><span class="icon">🦌</span>Whitetail Deer</button>
+        <button class="animal-btn" onclick="sel('muledeer',this)"><span class="icon">🦌</span>Mule Deer</button>
+        <button class="animal-btn" onclick="sel('moose',this)"><span class="icon">🫎</span>Moose</button>
+        <button class="animal-btn" onclick="sel('caribou',this)"><span class="icon">🦌</span>Caribou</button>
+        <button class="animal-btn" onclick="sel('pronghorn',this)"><span class="icon">🐐</span>Pronghorn</button>
+        <button class="animal-btn" onclick="sel('ibex',this)"><span class="icon">🐐</span>Ibex</button>
+        <button class="animal-btn" onclick="sel('markhor',this)"><span class="icon">🐐</span>Markhor</button>
+        <button class="animal-btn" onclick="sel('bear',this)"><span class="icon">🐻</span>Brown Bear</button>
+        <button class="animal-btn" onclick="sel('polarbear',this)"><span class="icon">🐻‍❄️</span>Polar Bear</button>
+        <button class="animal-btn" onclick="sel('bison',this)"><span class="icon">🐃</span>Bison</button>
+        <button class="animal-btn" onclick="sel('kudu',this)"><span class="icon">🦬</span>Greater Kudu</button>
+        <button class="animal-btn" onclick="sel('sable',this)"><span class="icon">🦬</span>Sable Antelope</button>
+        <button class="animal-btn" onclick="sel('buffalo',this)"><span class="icon">🐃</span>Cape Buffalo</button>
+        <button class="animal-btn" onclick="sel('lion',this)"><span class="icon">🦁</span>African Lion</button>
+    </div>
+
+    <!-- ARGALI -->
+    <div class="panel" id="panel-argali">
+        <div class="panel-title">Argali Sheep <span style="font-size:0.6em;color:#a89070">(Ovis ammon)</span></div>
+        <div class="panel-subtitle">SCI Method — Horn length + base circumference + tip-to-tip spread. All in inches.</div>
+        <p class="section-label">Horn Measurements</p>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="a_rl" placeholder="e.g. 55" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="a_ll" placeholder="e.g. 54" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="a_rb" placeholder="e.g. 16" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="a_lb" placeholder="e.g. 15.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Tip-to-Tip Spread (in)</label><input type="number" id="a_sp" placeholder="e.g. 28" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcArgali()">Calculate Score</button>
+        <div class="result" id="result-argali"></div>
+    </div>
+
+    <!-- BIGHORN -->
+    <div class="panel" id="panel-bighorn">
+        <div class="panel-title">Bighorn Sheep</div>
+        <div class="panel-subtitle">B&amp;C Method — Horn length + four circumference measurements each side. All in inches.</div>
+        <p class="section-label">Horn Length</p>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="bh_rl" placeholder="e.g. 38" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="bh_ll" placeholder="e.g. 37.5" step="0.125"></div></div>
+        <p class="section-label">Right Circumferences</p>
+        <div class="row"><div class="field"><label>Base C-1</label><input type="number" id="bh_rc1" placeholder="e.g. 15" step="0.125"></div><div class="field"><label>Quarter C-2</label><input type="number" id="bh_rc2" placeholder="e.g. 12" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Half C-3</label><input type="number" id="bh_rc3" placeholder="e.g. 9" step="0.125"></div><div class="field"><label>Three-Quarter C-4</label><input type="number" id="bh_rc4" placeholder="e.g. 6" step="0.125"></div></div>
+        <p class="section-label">Left Circumferences</p>
+        <div class="row"><div class="field"><label>Base C-1</label><input type="number" id="bh_lc1" placeholder="e.g. 15" step="0.125"></div><div class="field"><label>Quarter C-2</label><input type="number" id="bh_lc2" placeholder="e.g. 12" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Half C-3</label><input type="number" id="bh_lc3" placeholder="e.g. 9" step="0.125"></div><div class="field"><label>Three-Quarter C-4</label><input type="number" id="bh_lc4" placeholder="e.g. 6" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcBighorn()">Calculate Score</button>
+        <div class="result" id="result-bighorn"></div>
+    </div>
+
+    <!-- DALL SHEEP -->
+    <div class="panel" id="panel-dallsheep">
+        <div class="panel-title">Dall Sheep</div>
+        <div class="panel-subtitle">B&amp;C Method — Horn length + four circumference measurements each side. All in inches.</div>
+        <p class="section-label">Horn Length</p>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="ds_rl" placeholder="e.g. 40" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="ds_ll" placeholder="e.g. 39.5" step="0.125"></div></div>
+        <p class="section-label">Right Circumferences</p>
+        <div class="row"><div class="field"><label>Base C-1</label><input type="number" id="ds_rc1" placeholder="e.g. 13" step="0.125"></div><div class="field"><label>Quarter C-2</label><input type="number" id="ds_rc2" placeholder="e.g. 10" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Half C-3</label><input type="number" id="ds_rc3" placeholder="e.g. 7.5" step="0.125"></div><div class="field"><label>Three-Quarter C-4</label><input type="number" id="ds_rc4" placeholder="e.g. 5" step="0.125"></div></div>
+        <p class="section-label">Left Circumferences</p>
+        <div class="row"><div class="field"><label>Base C-1</label><input type="number" id="ds_lc1" placeholder="e.g. 13" step="0.125"></div><div class="field"><label>Quarter C-2</label><input type="number" id="ds_lc2" placeholder="e.g. 10" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Half C-3</label><input type="number" id="ds_lc3" placeholder="e.g. 7.5" step="0.125"></div><div class="field"><label>Three-Quarter C-4</label><input type="number" id="ds_lc4" placeholder="e.g. 5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcDall()">Calculate Score</button>
+        <div class="result" id="result-dallsheep"></div>
+    </div>
+
+    <!-- ELK -->
+    <div class="panel" id="panel-elk">
+        <div class="panel-title">Rocky Mountain Elk</div>
+        <div class="panel-subtitle">B&amp;C — Main beams + tine lengths + inside spread. All in inches.</div>
+        <p class="section-label">Main Beams &amp; Spread</p>
+        <div class="row"><div class="field"><label>Right Main Beam (in)</label><input type="number" id="el_rb" placeholder="e.g. 54" step="0.125"></div><div class="field"><label>Left Main Beam (in)</label><input type="number" id="el_lb" placeholder="e.g. 53" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Inside Spread (in)</label><input type="number" id="el_sp" placeholder="e.g. 42" step="0.125"></div></div>
+        <p class="section-label">Tine Lengths (Right / Left)</p>
+        <div class="row"><div class="field"><label>G-2 Right</label><input type="number" id="el_rg2" placeholder="e.g. 18" step="0.125"></div><div class="field"><label>G-2 Left</label><input type="number" id="el_lg2" placeholder="e.g. 17" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-3 Right</label><input type="number" id="el_rg3" placeholder="e.g. 20" step="0.125"></div><div class="field"><label>G-3 Left</label><input type="number" id="el_lg3" placeholder="e.g. 19" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-4 Right</label><input type="number" id="el_rg4" placeholder="e.g. 16" step="0.125"></div><div class="field"><label>G-4 Left</label><input type="number" id="el_lg4" placeholder="e.g. 15" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-5 Right</label><input type="number" id="el_rg5" placeholder="e.g. 10" step="0.125"></div><div class="field"><label>G-5 Left</label><input type="number" id="el_lg5" placeholder="e.g. 9" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcElk()">Calculate Score</button>
+        <div class="result" id="result-elk"></div>
+    </div>
+
+    <!-- WHITETAIL -->
+    <div class="panel" id="panel-whitetail">
+        <div class="panel-title">Whitetail Deer</div>
+        <div class="panel-subtitle">B&amp;C — Main beams + tines + mass + spread. All in inches.</div>
+        <p class="section-label">Main Beams &amp; Spread</p>
+        <div class="row"><div class="field"><label>Right Main Beam (in)</label><input type="number" id="wt_rb" placeholder="e.g. 26" step="0.125"></div><div class="field"><label>Left Main Beam (in)</label><input type="number" id="wt_lb" placeholder="e.g. 25.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Inside Spread (in)</label><input type="number" id="wt_sp" placeholder="e.g. 18" step="0.125"></div></div>
+        <p class="section-label">Tine Lengths (Right / Left)</p>
+        <div class="row"><div class="field"><label>G-2 Right</label><input type="number" id="wt_rg2" placeholder="e.g. 11" step="0.125"></div><div class="field"><label>G-2 Left</label><input type="number" id="wt_lg2" placeholder="e.g. 10.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-3 Right</label><input type="number" id="wt_rg3" placeholder="e.g. 10" step="0.125"></div><div class="field"><label>G-3 Left</label><input type="number" id="wt_lg3" placeholder="e.g. 9.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-4 Right</label><input type="number" id="wt_rg4" placeholder="e.g. 8" step="0.125"></div><div class="field"><label>G-4 Left</label><input type="number" id="wt_lg4" placeholder="e.g. 7.5" step="0.125"></div></div>
+        <p class="section-label">Mass (H-1 &amp; H-2, Right / Left)</p>
+        <div class="row"><div class="field"><label>H-1 Right</label><input type="number" id="wt_rh1" placeholder="e.g. 4.5" step="0.125"></div><div class="field"><label>H-1 Left</label><input type="number" id="wt_lh1" placeholder="e.g. 4.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>H-2 Right</label><input type="number" id="wt_rh2" placeholder="e.g. 4.2" step="0.125"></div><div class="field"><label>H-2 Left</label><input type="number" id="wt_lh2" placeholder="e.g. 4.2" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcWhitetail()">Calculate Score</button>
+        <div class="result" id="result-whitetail"></div>
+    </div>
+
+    <!-- MULE DEER -->
+    <div class="panel" id="panel-muledeer">
+        <div class="panel-title">Mule Deer</div>
+        <div class="panel-subtitle">B&amp;C — Main beams + tine lengths + inside spread. All in inches.</div>
+        <p class="section-label">Main Beams &amp; Spread</p>
+        <div class="row"><div class="field"><label>Right Main Beam (in)</label><input type="number" id="md_rb" placeholder="e.g. 24" step="0.125"></div><div class="field"><label>Left Main Beam (in)</label><input type="number" id="md_lb" placeholder="e.g. 23.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Inside Spread (in)</label><input type="number" id="md_sp" placeholder="e.g. 24" step="0.125"></div></div>
+        <p class="section-label">Tine Lengths (Right / Left)</p>
+        <div class="row"><div class="field"><label>G-2 Right</label><input type="number" id="md_rg2" placeholder="e.g. 16" step="0.125"></div><div class="field"><label>G-2 Left</label><input type="number" id="md_lg2" placeholder="e.g. 15" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>G-3 Right</label><input type="number" id="md_rg3" placeholder="e.g. 12" step="0.125"></div><div class="field"><label>G-3 Left</label><input type="number" id="md_lg3" placeholder="e.g. 11" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcMuleDeer()">Calculate Score</button>
+        <div class="result" id="result-muledeer"></div>
+    </div>
+
+    <!-- MOOSE -->
+    <div class="panel" id="panel-moose">
+        <div class="panel-title">Moose</div>
+        <div class="panel-subtitle">B&amp;C — Greatest spread + palm lengths &amp; widths + normal points. All in inches.</div>
+        <div class="row"><div class="field"><label>Greatest Spread (in)</label><input type="number" id="mo_sp" placeholder="e.g. 64" step="0.125"></div><div class="field"><label>Normal Points (both sides)</label><input type="number" id="mo_pts" placeholder="e.g. 14" step="1"></div></div>
+        <div class="row"><div class="field"><label>Right Palm Length (in)</label><input type="number" id="mo_rpl" placeholder="e.g. 46" step="0.125"></div><div class="field"><label>Left Palm Length (in)</label><input type="number" id="mo_lpl" placeholder="e.g. 45" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Palm Width (in)</label><input type="number" id="mo_rpw" placeholder="e.g. 14" step="0.125"></div><div class="field"><label>Left Palm Width (in)</label><input type="number" id="mo_lpw" placeholder="e.g. 13.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcMoose()">Calculate Score</button>
+        <div class="result" id="result-moose"></div>
+    </div>
+
+    <!-- CARIBOU -->
+    <div class="panel" id="panel-caribou">
+        <div class="panel-title">Caribou</div>
+        <div class="panel-subtitle">B&amp;C — Main beams + bez tines + top palm widths + inside spread. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Main Beam (in)</label><input type="number" id="ca_rb" placeholder="e.g. 50" step="0.125"></div><div class="field"><label>Left Main Beam (in)</label><input type="number" id="ca_lb" placeholder="e.g. 49" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Bez Tine (in)</label><input type="number" id="ca_rbz" placeholder="e.g. 22" step="0.125"></div><div class="field"><label>Left Bez Tine (in)</label><input type="number" id="ca_lbz" placeholder="e.g. 21" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Top Palm Width (in)</label><input type="number" id="ca_rp" placeholder="e.g. 12" step="0.125"></div><div class="field"><label>Left Top Palm Width (in)</label><input type="number" id="ca_lp" placeholder="e.g. 11" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Inside Spread (in)</label><input type="number" id="ca_sp" placeholder="e.g. 38" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcCaribou()">Calculate Score</button>
+        <div class="result" id="result-caribou"></div>
+    </div>
+
+    <!-- PRONGHORN -->
+    <div class="panel" id="panel-pronghorn">
+        <div class="panel-title">Pronghorn Antelope</div>
+        <div class="panel-subtitle">B&amp;C — Horn length + prong + base circ. + tip-to-tip spread. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="pr_rl" placeholder="e.g. 16" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="pr_ll" placeholder="e.g. 15.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Prong Length (in)</label><input type="number" id="pr_rp" placeholder="e.g. 7" step="0.125"></div><div class="field"><label>Left Prong Length (in)</label><input type="number" id="pr_lp" placeholder="e.g. 6.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="pr_rb" placeholder="e.g. 6.5" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="pr_lb" placeholder="e.g. 6.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Tip-to-Tip Spread (in)</label><input type="number" id="pr_sp" placeholder="e.g. 5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcPronghorn()">Calculate Score</button>
+        <div class="result" id="result-pronghorn"></div>
+    </div>
+
+    <!-- IBEX -->
+    <div class="panel" id="panel-ibex">
+        <div class="panel-title">Ibex</div>
+        <div class="panel-subtitle">SCI Method — Horn length + base circumference each side. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="ib_rl" placeholder="e.g. 40" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="ib_ll" placeholder="e.g. 39" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="ib_rb" placeholder="e.g. 10" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="ib_lb" placeholder="e.g. 9.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcIbex()">Calculate Score</button>
+        <div class="result" id="result-ibex"></div>
+    </div>
+
+    <!-- MARKHOR -->
+    <div class="panel" id="panel-markhor">
+        <div class="panel-title">Markhor</div>
+        <div class="panel-subtitle">SCI Method — Horn length along outer spiral + base circumference. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="mk_rl" placeholder="e.g. 50" step="0.125"><span class="hint">Along outer spiral</span></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="mk_ll" placeholder="e.g. 49" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="mk_rb" placeholder="e.g. 11" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="mk_lb" placeholder="e.g. 10.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcMarkhor()">Calculate Score</button>
+        <div class="result" id="result-markhor"></div>
+    </div>
+
+    <!-- BROWN BEAR -->
+    <div class="panel" id="panel-bear">
+        <div class="panel-title">Brown / Grizzly Bear</div>
+        <div class="panel-subtitle">B&amp;C — Skull length + skull width. All in inches.</div>
+        <div class="row"><div class="field"><label>Skull Length (in)</label><input type="number" id="br_l" placeholder="e.g. 17" step="0.125"><span class="hint">Greatest length, no lower jaw</span></div><div class="field"><label>Skull Width (in)</label><input type="number" id="br_w" placeholder="e.g. 10" step="0.125"><span class="hint">Greatest width</span></div></div>
+        <button class="calc-btn" onclick="calcBear()">Calculate Score</button>
+        <div class="result" id="result-bear"></div>
+    </div>
+
+    <!-- POLAR BEAR -->
+    <div class="panel" id="panel-polarbear">
+        <div class="panel-title">Polar Bear</div>
+        <div class="panel-subtitle">B&amp;C — Skull length + skull width. All in inches.</div>
+        <div class="row"><div class="field"><label>Skull Length (in)</label><input type="number" id="pb_l" placeholder="e.g. 18" step="0.125"></div><div class="field"><label>Skull Width (in)</label><input type="number" id="pb_w" placeholder="e.g. 11" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcPolarBear()">Calculate Score</button>
+        <div class="result" id="result-polarbear"></div>
+    </div>
+
+    <!-- BISON -->
+    <div class="panel" id="panel-bison">
+        <div class="panel-title">American Bison</div>
+        <div class="panel-subtitle">B&amp;C — Horn length + base circumference + tip-to-tip spread. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="bi_rl" placeholder="e.g. 22" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="bi_ll" placeholder="e.g. 21.5" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="bi_rb" placeholder="e.g. 14" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="bi_lb" placeholder="e.g. 13.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Tip-to-Tip Spread (in)</label><input type="number" id="bi_sp" placeholder="e.g. 30" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcBison()">Calculate Score</button>
+        <div class="result" id="result-bison"></div>
+    </div>
+
+    <!-- KUDU -->
+    <div class="panel" id="panel-kudu">
+        <div class="panel-title">Greater Kudu</div>
+        <div class="panel-subtitle">SCI Method — Horn length along outer spiral + base circumference. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="ku_rl" placeholder="e.g. 56" step="0.125"><span class="hint">Along outer spiral</span></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="ku_ll" placeholder="e.g. 55" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="ku_rb" placeholder="e.g. 13" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="ku_lb" placeholder="e.g. 12.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcKudu()">Calculate Score</button>
+        <div class="result" id="result-kudu"></div>
+    </div>
+
+    <!-- SABLE -->
+    <div class="panel" id="panel-sable">
+        <div class="panel-title">Sable Antelope</div>
+        <div class="panel-subtitle">SCI Method — Horn length along outer curve + base circumference. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="sa_rl" placeholder="e.g. 46" step="0.125"></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="sa_ll" placeholder="e.g. 45" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Base Circ. (in)</label><input type="number" id="sa_rb" placeholder="e.g. 11" step="0.125"></div><div class="field"><label>Left Base Circ. (in)</label><input type="number" id="sa_lb" placeholder="e.g. 10.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcSable()">Calculate Score</button>
+        <div class="result" id="result-sable"></div>
+    </div>
+
+    <!-- CAPE BUFFALO -->
+    <div class="panel" id="panel-buffalo">
+        <div class="panel-title">Cape Buffalo</div>
+        <div class="panel-subtitle">SCI Method — Horn length + boss width + spread. All in inches.</div>
+        <div class="row"><div class="field"><label>Right Horn Length (in)</label><input type="number" id="cb_rl" placeholder="e.g. 42" step="0.125"><span class="hint">Along outer curve</span></div><div class="field"><label>Left Horn Length (in)</label><input type="number" id="cb_ll" placeholder="e.g. 41" step="0.125"></div></div>
+        <div class="row"><div class="field"><label>Right Boss Width (in)</label><input type="number" id="cb_rb" placeholder="e.g. 15" step="0.125"></div><div class="field"><label>Left Boss Width (in)</label><input type="number" id="cb_lb" placeholder="e.g. 14.5" step="0.125"></div></div>
+        <div class="row single"><div class="field"><label>Tip-to-Tip Spread (in)</label><input type="number" id="cb_sp" placeholder="e.g. 38" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcBuffalo()">Calculate Score</button>
+        <div class="result" id="result-buffalo"></div>
+    </div>
+
+    <!-- LION -->
+    <div class="panel" id="panel-lion">
+        <div class="panel-title">African Lion</div>
+        <div class="panel-subtitle">SCI Method — Skull length + skull width. All in inches.</div>
+        <div class="row"><div class="field"><label>Skull Length (in)</label><input type="number" id="li_l" placeholder="e.g. 15" step="0.125"></div><div class="field"><label>Skull Width (in)</label><input type="number" id="li_w" placeholder="e.g. 9.5" step="0.125"></div></div>
+        <button class="calc-btn" onclick="calcLion()">Calculate Score</button>
+        <div class="result" id="result-lion"></div>
+    </div>
+
+    <a href="../<!DOCTYPE html>.html" class="back-link">← Back to Sheep Hunting in Mongolia</a>
+
+    <footer>
+        <p>Scores calculated using B&amp;C and SCI methodologies for reference purposes only.</p>
+        <p>Official scoring must be performed by a certified measurer with a signed score sheet.</p>
+    </footer>
+</div>
+
+<script>
+    function sel(id, btn) {
+        document.querySelectorAll('.animal-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + id).classList.add('visible');
+        document.getElementById('panel-' + id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+    function grade(score, wr, exc, tro) {
+        if (score >= wr)  return { label: '🏆 World Record Class', cls: 'g-wr' };
+        if (score >= exc) return { label: '⭐ Exceptional Trophy', cls: 'g-exc' };
+        if (score >= tro) return { label: '✓ Trophy Class', cls: 'g-tro' };
+        return { label: 'Sub-Trophy', cls: 'g-avg' };
+    }
+
+    function show(id, score, lines, wr, exc, tro, unit) {
+        unit = unit || 'B&C Points';
+        const g = grade(score, wr, exc, tro);
+        const box = document.getElementById('result-' + id);
+        box.innerHTML =
+            '<div class="score">' + score.toFixed(3) + '</div>' +
+            '<div class="unit">' + unit + '</div>' +
+            '<div class="grade ' + g.cls + '">' + g.label + '</div>' +
+            '<div class="breakdown">' + lines + '</div>' +
+            '<button class="reset-btn" onclick="rst(\'' + id + '\')">Reset</button>';
+        box.classList.add('visible');
+    }
+
+    function rst(id) {
+        document.getElementById('panel-' + id).querySelectorAll('input').forEach(function(i){ i.value = ''; });
+        document.getElementById('result-' + id).classList.remove('visible');
+    }
+
+    function calcArgali() {
+        var rl=v('a_rl'),ll=v('a_ll'),rb=v('a_rb'),lb=v('a_lb'),sp=v('a_sp');
+        show('argali', rl+ll+rb+lb+sp,
+            'Right horn: <span>'+rl+'"</span><br>Left horn: <span>'+ll+'"</span><br>Right base: <span>'+rb+'"</span><br>Left base: <span>'+lb+'"</span><br>Spread: <span>'+sp+'"</span>',
+            290, 260, 220, 'SCI Points');
+    }
+
+    function calcBighorn() {
+        var rl=v('bh_rl'),ll=v('bh_ll');
+        var rc=v('bh_rc1')+v('bh_rc2')+v('bh_rc3')+v('bh_rc4');
+        var lc=v('bh_lc1')+v('bh_lc2')+v('bh_lc3')+v('bh_lc4');
+        var diff=Math.abs(rl-ll)+Math.abs(rc-lc);
+        show('bighorn', rl+ll+rc+lc-diff,
+            'Right horn: <span>'+rl+'"</span><br>Left horn: <span>'+ll+'"</span><br>Right circs: <span>'+rc.toFixed(3)+'"</span><br>Left circs: <span>'+lc.toFixed(3)+'"</span><br>Symmetry deduction: <span>-'+diff.toFixed(3)+'"</span>',
+            185, 170, 150);
+    }
+
+    function calcDall() {
+        var rl=v('ds_rl'),ll=v('ds_ll');
+        var rc=v('ds_rc1')+v('ds_rc2')+v('ds_rc3')+v('ds_rc4');
+        var lc=v('ds_lc1')+v('ds_lc2')+v('ds_lc3')+v('ds_lc4');
+        var diff=Math.abs(rl-ll)+Math.abs(rc-lc);
+        show('dallsheep', rl+ll+rc+lc-diff,
+            'Right horn: <span>'+rl+'"</span><br>Left horn: <span>'+ll+'"</span><br>Right circs: <span>'+rc.toFixed(3)+'"</span><br>Left circs: <span>'+lc.toFixed(3)+'"</span><br>Deduction: <span>-'+diff.toFixed(3)+'"</span>',
+            170, 155, 130);
+    }
+
+    function calcElk() {
+        var rb=v('el_rb'),lb=v('el_lb'),sp=v('el_sp');
+        var t=v('el_rg2')+v('el_lg2')+v('el_rg3')+v('el_lg3')+v('el_rg4')+v('el_lg4')+v('el_rg5')+v('el_lg5');
+        show('elk', rb+lb+sp+t,
+            'Right beam: <span>'+rb+'"</span><br>Left beam: <span>'+lb+'"</span><br>Spread: <span>'+sp+'"</span><br>Total tines: <span>'+t+'"</span>',
+            400, 360, 300);
+    }
+
+    function calcWhitetail() {
+        var rb=v('wt_rb'),lb=v('wt_lb'),sp=v('wt_sp');
+        var t=v('wt_rg2')+v('wt_lg2')+v('wt_rg3')+v('wt_lg3')+v('wt_rg4')+v('wt_lg4');
+        var m=v('wt_rh1')+v('wt_lh1')+v('wt_rh2')+v('wt_lh2');
+        show('whitetail', rb+lb+sp+t+m,
+            'Beams: <span>'+(rb+lb).toFixed(3)+'"</span><br>Spread: <span>'+sp+'"</span><br>Tines: <span>'+t.toFixed(3)+'"</span><br>Mass: <span>'+m.toFixed(3)+'"</span>',
+            200, 170, 140);
+    }
+
+    function calcMuleDeer() {
+        var rb=v('md_rb'),lb=v('md_lb'),sp=v('md_sp');
+        var t=v('md_rg2')+v('md_lg2')+v('md_rg3')+v('md_lg3');
+        show('muledeer', rb+lb+sp+t,
+            'Beams: <span>'+(rb+lb).toFixed(3)+'"</span><br>Spread: <span>'+sp+'"</span><br>Tines: <span>'+t.toFixed(3)+'"</span>',
+            200, 180, 150);
+    }
+
+    function calcMoose() {
+        var sp=v('mo_sp'),pts=v('mo_pts');
+        var pl=v('mo_rpl')+v('mo_lpl'),pw=v('mo_rpw')+v('mo_lpw');
+        show('moose', sp+pl+pw+pts,
+            'Spread: <span>'+sp+'"</span><br>Palm lengths: <span>'+pl+'"</span><br>Palm widths: <span>'+pw+'"</span><br>Points: <span>'+pts+'</span>',
+            230, 200, 170);
+    }
+
+    function calcCaribou() {
+        var b=v('ca_rb')+v('ca_lb'),bz=v('ca_rbz')+v('ca_lbz'),p=v('ca_rp')+v('ca_lp'),sp=v('ca_sp');
+        show('caribou', b+bz+p+sp,
+            'Main beams: <span>'+b+'"</span><br>Bez tines: <span>'+bz+'"</span><br>Top palms: <span>'+p+'"</span><br>Spread: <span>'+sp+'"</span>',
+            400, 360, 300);
+    }
+
+    function calcPronghorn() {
+        var h=v('pr_rl')+v('pr_ll'),p=v('pr_rp')+v('pr_lp'),b=v('pr_rb')+v('pr_lb'),sp=v('pr_sp');
+        show('pronghorn', h+p+b+sp,
+            'Horns: <span>'+h+'"</span><br>Prongs: <span>'+p+'"</span><br>Bases: <span>'+b+'"</span><br>Spread: <span>'+sp+'"</span>',
+            90, 82, 70);
+    }
+
+    function calcIbex() {
+        var h=v('ib_rl')+v('ib_ll'),b=v('ib_rb')+v('ib_lb');
+        show('ibex', h+b, 'Horn lengths: <span>'+h+'"</span><br>Base circs: <span>'+b+'"</span>', 110, 95, 75, 'SCI Points');
+    }
+
+    function calcMarkhor() {
+        var h=v('mk_rl')+v('mk_ll'),b=v('mk_rb')+v('mk_lb');
+        show('markhor', h+b, 'Horn lengths: <span>'+h+'"</span><br>Base circs: <span>'+b+'"</span>', 120, 100, 80, 'SCI Points');
+    }
+
+    function calcBear() {
+        var l=v('br_l'),w=v('br_w');
+        show('bear', l+w, 'Skull length: <span>'+l+'"</span><br>Skull width: <span>'+w+'"</span>', 28, 26, 24);
+    }
+
+    function calcPolarBear() {
+        var l=v('pb_l'),w=v('pb_w');
+        show('polarbear', l+w, 'Skull length: <span>'+l+'"</span><br>Skull width: <span>'+w+'"</span>', 29, 27, 25);
+    }
+
+    function calcBison() {
+        var h=v('bi_rl')+v('bi_ll'),b=v('bi_rb')+v('bi_lb'),sp=v('bi_sp');
+        show('bison', h+b+sp, 'Horn lengths: <span>'+h+'"</span><br>Base circs: <span>'+b+'"</span><br>Spread: <span>'+sp+'"</span>', 130, 115, 100);
+    }
+
+    function calcKudu() {
+        var h=v('ku_rl')+v('ku_ll'),b=v('ku_rb')+v('ku_lb');
+        show('kudu', h+b, 'Horn lengths: <span>'+h+'"</span><br>Base circs: <span>'+b+'"</span>', 140, 120, 100, 'SCI Points');
+    }
+
+    function calcSable() {
+        var h=v('sa_rl')+v('sa_ll'),b=v('sa_rb')+v('sa_lb');
+        show('sable', h+b, 'Horn lengths: <span>'+h+'"</span><br>Base circs: <span>'+b+'"</span>', 110, 95, 75, 'SCI Points');
+    }
+
+    function calcBuffalo() {
+        var h=v('cb_rl')+v('cb_ll'),b=v('cb_rb')+v('cb_lb'),sp=v('cb_sp');
+        show('buffalo', h+b+sp, 'Horn lengths: <span>'+h+'"</span><br>Boss widths: <span>'+b+'"</span><br>Spread: <span>'+sp+'"</span>', 110, 95, 80, 'SCI Points');
+    }
+
+    function calcLion() {
+        var l=v('li_l'),w=v('li_w');
+        show('lion', l+w, 'Skull length: <span>'+l+'"</span><br>Skull width: <span>'+w+'"</span>', 26, 24, 22, 'SCI Points');
+    }
+</script>
+</body>
+</html>
